@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마루커넥트 — 프로그램별 팀 현황</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --border: #E2DDD5;
+    --border-strong: #C8C2B8;
+    --text-primary: #1A1814;
+    --text-secondary: #6B6560;
+    --text-muted: #9E9892;
+    --accent: #1A1814;
+
+    --c-sf-bg: #E8F0FC; --c-sf-text: #1A3A7A; --c-sf-border: #5B82D4;
+    --c-growth-bg: #EBF5E1; --c-growth-text: #2A5010; --c-growth-border: #6BAA2A;
+    --c-duers-bg: #F0EEFF; --c-duers-text: #3A2E8A; --c-duers-border: #7B6FD8;
+    --c-voyager-bg: #FEF3E2; --c-voyager-text: #6B3800; --c-voyager-border: #C07820;
+    --c-jjy-bg: #FDEEE8; --c-jjy-text: #6A2510; --c-jjy-border: #D05A30;
+    --c-nonprofit-bg: #FDE8F2; --c-nonprofit-text: #6A1A3A; --c-nonprofit-border: #C84A80;
+    --c-sanghoe-bg: #E0F5EE; --c-sanghoe-text: #054030; --c-sanghoe-border: #1A9E72;
+    --c-uni-bg: #EFEDE6; --c-uni-text: #3A3830; --c-uni-border: #888070;
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 48px 24px 80px;
+  }
+
+  .page-header {
+    max-width: 900px;
+    margin: 0 auto 48px;
+    border-bottom: 1.5px solid var(--text-primary);
+    padding-bottom: 20px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .page-title {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+
+  .page-title span {
+    font-weight: 300;
+    color: var(--text-secondary);
+  }
+
+  .page-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .meta-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    display: inline-block;
+  }
+
+  .legend {
+    max-width: 900px;
+    margin: 0 auto 32px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .legend-star {
+    font-size: 11px;
+    color: var(--c-voyager-border);
+    font-weight: 700;
+  }
+
+  .search-wrap {
+    max-width: 900px;
+    margin: 0 auto 32px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 10px 16px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--border-strong); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  .groups { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+
+  .group-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .group-card:hover { border-color: var(--border-strong); }
+
+  .group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    cursor: pointer;
+    user-select: none;
+    gap: 12px;
+  }
+
+  .group-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .program-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 99px;
+    border: 1px solid;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+
+  .group-name {
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .group-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .chevron {
+    color: var(--text-muted);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .chevron.open { transform: rotate(180deg); }
+
+  .group-body {
+    padding: 0 20px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border-top: 1px solid var(--border);
+  }
+
+  .group-body.collapsed { display: none; }
+
+  .team-tag {
+    font-size: 12px;
+    padding: 4px 11px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    background: var(--bg);
+    transition: background 0.15s, border-color 0.15s;
+    cursor: default;
+    position: relative;
+  }
+
+  .team-tag:hover { background: var(--surface); border-color: var(--border-strong); }
+
+  .team-tag.multi {
+    color: var(--text-primary);
+    font-weight: 500;
+    border-color: var(--border-strong);
+    background: var(--surface);
+  }
+
+  .team-tag.multi::after {
+    content: "★";
+    font-size: 9px;
+    color: var(--c-voyager-border);
+    margin-left: 4px;
+    vertical-align: 1px;
+  }
+
+  .team-tag.hidden-search { display: none; }
+
+  .no-results {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 8px 0 4px;
+    display: none;
+  }
+
+  .group-card.all-hidden { display: none; }
+
+  .footer {
+    max-width: 900px;
+    margin: 40px auto 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div>
+    <div class="page-title">마루커넥트 <span>프로그램별 팀 현황</span></div>
+  </div>
+  <div class="page-meta">
+    <div class="meta-item"><span class="meta-dot"></span> 총 64팀 (중복 포함)</div>
+    <div class="meta-item"><span class="meta-dot"></span> 8개 프로그램</div>
+  </div>
+</header>
+
+<div class="legend">
+  <span class="legend-star">★</span>
+  <span>복수 프로그램 참여팀</span>
+</div>
+
+<div class="search-wrap">
+  <input class="search-input" type="text" id="search" placeholder="팀 이름으로 검색..." autocomplete="off">
+</div>
+
+<div class="groups" id="groups"></div>
+
+<div class="footer">
+  <span>마루커넥트 · 아산나눔재단</span>
+  <span id="footer-date"></span>
+</div>
+
+<script>
+const programs = [
+  {
+    id: "sf",
+    name: "마루SF",
+    style: { bg: "var(--c-sf-bg)", text: "var(--c-sf-text)", border: "var(--c-sf-border)" },
+    teams: ["런베어","미메틱스","애드쉴드","올세일 코퍼레이션","GIGR","와들","메타디엑스","Storika","그레이박스","엑소시스템즈","Functional Systems","에브리심","비브리지","제틱에이아이","도비스튜디오","Koddy","Aristo","Hyperstar","Minimap Inc.","Orange Biomed","Pluto Labs","엘스랩스"]
+  },
+  {
+    id: "growth",
+    name: "MARU 성장존 알럼나이",
+    style: { bg: "var(--c-growth-bg)", text: "var(--c-growth-text)", border: "var(--c-growth-border)" },
+    teams: ["애드쉴드","올세일 코퍼레이션","GIGR","와들","메타디엑스","Storika","그레이박스","비브리지","제틱에이아이","도비스튜디오","엘스랩스","더밀크코리아","타날리시스","다이노즈","넥스트그라운드","티엠알파운더스","플릿튠","피카디","롸잇","파워테스크","르몽","알엑스 주식회사","앤트","타이디비","리필리","마일코퍼레이션","(주)그리네타","주식회사 보살핌","포어텔마이헬스","에이아이포기빙","Brightmount Inc.","에이비제트"]
+  },
+  {
+    id: "duers",
+    name: "아산 두어스",
+    style: { bg: "var(--c-duers-bg)", text: "var(--c-duers-text)", border: "var(--c-duers-border)" },
+    teams: ["Koddy","Aristo","주식회사 슬리비즈","주식회사 펄크럼테크놀로지스","Clavie","Globify Inc.","THE ZONE BIO","피놀로지 (Finology)"]
+  },
+  {
+    id: "voyager",
+    name: "아산 보이저",
+    style: { bg: "var(--c-voyager-bg)", text: "var(--c-voyager-text)", border: "var(--c-voyager-border)" },
+    teams: ["애드쉴드","올세일 코퍼레이션","제틱에이아이","플릿튠","에이아이포기빙","플랜핏","잼잼테라퓨틱스"]
+  },
+  {
+    id: "jjy",
+    name: "정주영창업경진대회 24년 이전 알럼나이",
+    style: { bg: "var(--c-jjy-bg)", text: "var(--c-jjy-text)", border: "var(--c-jjy-border)" },
+    teams: ["엑소시스템즈","다이노즈","티엠알파운더스","플릿튠","피카디","르몽","마일코퍼레이션","플랜핏","잼잼테라퓨틱스","내이루리","Toasterz"]
+  },
+  {
+    id: "nonprofit",
+    name: "아산 비영리스타트업",
+    style: { bg: "var(--c-nonprofit-bg)", text: "var(--c-nonprofit-text)", border: "var(--c-nonprofit-border)" },
+    teams: ["모스픽","지구를지키는소소한행동","대한의료봉사회"]
+  },
+  {
+    id: "sanghoe",
+    name: "아산 상회",
+    style: { bg: "var(--c-sanghoe-bg)", text: "var(--c-sanghoe-text)", border: "var(--c-sanghoe-border)" },
+    teams: ["프로리솔루션","모나","하이퍼커넥티드"]
+  },
+  {
+    id: "uni",
+    name: "아산 유니버시티",
+    style: { bg: "var(--c-uni-bg)", text: "var(--c-uni-text)", border: "var(--c-uni-border)" },
+    teams: ["디에프알앤"]
+  }
+];
+
+const teamProgramCount = {};
+programs.forEach(p => {
+  p.teams.forEach(t => {
+    teamProgramCount[t] = (teamProgramCount[t] || 0) + 1;
+  });
+});
+
+const container = document.getElementById('groups');
+
+programs.forEach(prog => {
+  const card = document.createElement('div');
+  card.className = 'group-card';
+  card.dataset.prog = prog.id;
+
+  const hdr = document.createElement('div');
+  hdr.className = 'group-header';
+
+  const badge = document.createElement('span');
+  badge.className = 'program-badge';
+  badge.style.background = prog.style.bg;
+  badge.style.color = prog.style.text;
+  badge.style.borderColor = prog.style.border;
+  badge.textContent = prog.teams.length + '팀';
+
+  const nameEl = document.createElement('span');
+  nameEl.className = 'group-name';
+  nameEl.textContent = prog.name;
+
+  const left = document.createElement('div');
+  left.className = 'group-header-left';
+  left.appendChild(badge);
+  left.appendChild(nameEl);
+
+  const chevron = document.createElement('svg');
+  chevron.setAttribute('width','16'); chevron.setAttribute('height','16');
+  chevron.setAttribute('viewBox','0 0 16 16'); chevron.setAttribute('fill','none');
+  chevron.className = 'chevron open';
+  chevron.innerHTML = '<path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+
+  hdr.appendChild(left);
+  hdr.appendChild(chevron);
+
+  const body = document.createElement('div');
+  body.className = 'group-body';
+
+  prog.teams.forEach(t => {
+    const tag = document.createElement('span');
+    tag.className = 'team-tag' + (teamProgramCount[t] > 1 ? ' multi' : '');
+    tag.textContent = t;
+    tag.dataset.name = t.toLowerCase();
+    body.appendChild(tag);
+  });
+
+  const noRes = document.createElement('div');
+  noRes.className = 'no-results';
+  noRes.textContent = '검색 결과 없음';
+  body.appendChild(noRes);
+
+  hdr.addEventListener('click', () => {
+    body.classList.toggle('collapsed');
+    chevron.classList.toggle('open');
+  });
+
+  card.appendChild(hdr);
+  card.appendChild(body);
+  container.appendChild(card);
+});
+
+document.getElementById('search').addEventListener('input', function() {
+  const q = this.value.trim().toLowerCase();
+  document.querySelectorAll('.group-card').forEach(card => {
+    const tags = card.querySelectorAll('.team-tag');
+    const noRes = card.querySelector('.no-results');
+    let visibleCount = 0;
+    tags.forEach(tag => {
+      if (!q || tag.dataset.name.includes(q)) {
+        tag.classList.remove('hidden-search');
+        visibleCount++;
+      } else {
+        tag.classList.add('hidden-search');
+      }
+    });
+    const body = card.querySelector('.group-body');
+    if (q && visibleCount === 0) {
+      card.classList.add('all-hidden');
+      noRes.style.display = 'none';
+    } else {
+      card.classList.remove('all-hidden');
+      body.classList.remove('collapsed');
+      card.querySelector('.chevron').classList.add('open');
+      noRes.style.display = 'none';
+    }
+  });
+});
+
+document.getElementById('footer-date').textContent =
+  new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+</script>
+</body>
+</html>
